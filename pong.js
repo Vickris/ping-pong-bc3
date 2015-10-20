@@ -176,28 +176,48 @@ Pong = {
       this.dy      = (this.maxY - this.minY) / (Game.random(1, 10) * Game.randomChoice(1, -1));
     },
 
-    update: function(dt) {
+    
+    //this will keep on updating depending on the acceleration of the ball
 
-      this.x = this.x + (this.dx * dt);
-      this.y = this.y + (this.dy * dt);
+    update: function(dt, leftPaddle, rightPaddle) {
 
-      if ((this.dx > 0) && (this.x > this.maxX)) {
-        this.x = this.maxX;
-        this.dx = -this.dx;
+      pos = Pong.Helper.accelerate(this.x, this.y, this.dx, this.dy, this.accel, dt);
+
+      if ((pos.dy > 0) && (pos.y > this.maxY)) {
+        pos.y = this.maxY;
+        pos.dy = -pos.dy;
       }
-      else if ((this.dx < 0) && (this.x < this.minX)) {
-        this.x = this.minX;
-        this.dx = -this.dx;
+      else if ((pos.dy < 0) && (pos.y < this.minY)) {
+        pos.y = this.minY;
+        pos.dy = -pos.dy;
       }
 
-      if ((this.dy > 0) && (this.y > this.maxY)) {
-        this.y = this.maxY;
-        this.dy = -this.dy;
+      var paddle = (pos.dx < 0) ? leftPaddle : rightPaddle;
+      var pt     = Pong.Helper.ballIntercept(this, paddle, pos.nx, pos.ny);
+
+      if (pt) {
+        switch(pt.d) {
+          case 'left':
+          case 'right':
+            pos.x = pt.x;
+            pos.dx = -pos.dx;
+            break;
+          case 'top':
+          case 'bottom':
+            pos.y = pt.y;
+            pos.dy = -pos.dy;
+            break;
+        }
+
+        // add/remove spin based on paddle direction
+        if (paddle.up)
+          pos.dy = pos.dy * (pos.dy < 0 ? 0.5 : 1.5);
+        else if (paddle.down)
+          pos.dy = pos.dy * (pos.dy > 0 ? 0.5 : 1.5);
       }
-      else if ((this.dy < 0) && (this.y < this.minY)) {
-        this.y = this.minY;
-        this.dy = -this.dy;
-      }
+
+      this.setpos(pos.x,  pos.y);
+      this.setdir(pos.dx, pos.dy);
     },
 
     draw: function(ctx) {
@@ -209,4 +229,77 @@ Pong = {
       ctx.closePath();
     }
     
+  }
+
+/* Helper method for acceleration which will
+-calculate the new position and speed of the ball.
+-detect if it bounced off the top or bottom wall (simple bounds check)
+-detect if it bounced off a paddle (see next section)
+-tweak the y speed to simulate spin if the ball hit a moving paddle
+*/
+  Helper: {
+//This the update method should 
+    accelerate: function(x, y, dx, dy, accel, dt) {
+      var x2  = x + (dt * dx) + (accel * dt * dt * 0.5);
+      var y2  = y + (dt * dy) + (accel * dt * dt * 0.5);
+      var dx2 = dx + (accel * dt) * (dx > 0 ? 1 : -1);
+      var dy2 = dy + (accel * dt) * (dy > 0 ? 1 : -1);
+      return { nx: (x2-x), ny: (y2-y), x: x2, y: y2, dx: dx2, dy: dy2 };
+    },
+// line intersection
+    intercept: function(x1, y1, x2, y2, x3, y3, x4, y4, d) {
+      var denom = ((y4-y3) * (x2-x1)) - ((x4-x3) * (y2-y1));
+      if (denom != 0) {
+        var ua = (((x4-x3) * (y1-y3)) - ((y4-y3) * (x1-x3))) / denom;
+        if ((ua >= 0) && (ua <= 1)) {
+          var ub = (((x2-x1) * (y1-y3)) - ((y2-y1) * (x1-x3))) / denom;
+          if ((ub >= 0) && (ub <= 1)) {
+            var x = x1 + (ua * (x2-x1));
+            var y = y1 + (ua * (y2-y1));
+            return { x: x, y: y, d: d};
+          }
+        }
+      }
+      return null;
+    },
+//Ball and paddle intersection
+    ballIntercept: function(ball, rect, nx, ny) {
+      var pt;
+      if (nx < 0) {
+        pt = Pong.Helper.intercept(ball.x, ball.y, ball.x + nx, ball.y + ny, 
+                                   rect.right  + ball.radius, 
+                                   rect.top    - ball.radius, 
+                                   rect.right  + ball.radius, 
+                                   rect.bottom + ball.radius, 
+                                   "right");
+      }
+      else if (nx > 0) {
+        pt = Pong.Helper.intercept(ball.x, ball.y, ball.x + nx, ball.y + ny, 
+                                   rect.left   - ball.radius, 
+                                   rect.top    - ball.radius, 
+                                   rect.left   - ball.radius, 
+                                   rect.bottom + ball.radius,
+                                   "left");
+      }
+      if (!pt) {
+        if (ny < 0) {
+          pt = Pong.Helper.intercept(ball.x, ball.y, ball.x + nx, ball.y + ny, 
+                                     rect.left   - ball.radius, 
+                                     rect.bottom + ball.radius, 
+                                     rect.right  + ball.radius, 
+                                     rect.bottom + ball.radius,
+                                     "bottom");
+        }
+        else if (ny > 0) {
+          pt = Pong.Helper.intercept(ball.x, ball.y, ball.x + nx, ball.y + ny, 
+                                     rect.left   - ball.radius, 
+                                     rect.top    - ball.radius, 
+                                     rect.right  + ball.radius, 
+                                     rect.top    - ball.radius,
+                                     "top");
+        }
+      }
+      return pt;
+    }
+
   }
