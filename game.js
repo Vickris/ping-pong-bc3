@@ -13,7 +13,6 @@ if (!Function.prototype.bind) {
     return bound;
   };
 }
-
 //create object but one cannot pass in arguments
 if (!Object.create) {
   Object.create = function(base) {
@@ -22,8 +21,7 @@ if (!Object.create) {
     return new F();
   }
 }
-
-//construct allows us to pass in arguments
+//construct allows us to pass in arguments 
 if (!Object.construct) {
   Object.construct = function(base) {
     var instance = Object.create(base);
@@ -32,7 +30,6 @@ if (!Object.construct) {
     return instance;
   }
 }
-
 //copy object properties to another object, mostly in jquery but not a standard
 if (!Object.extend) {
   Object.extend = function(destination, source) {
@@ -44,9 +41,9 @@ if (!Object.extend) {
   };
 }
 
-//================
-// CODE FOR GAME
-//================
+//==============
+//CODE FOR GAME
+//==============
 
 Game = {
   compatible: function() {
@@ -133,10 +130,6 @@ Game = {
     return (min + (Math.random() * (max - min)));
   },
 
-  randomChoice: function() {
-    return arguments[Math.floor(this.random(0, arguments.length))];
-  },
-
   timestamp: function() { 
     return new Date().getTime();
   },
@@ -170,6 +163,7 @@ Game = {
   //-----------------------------------------------------------------------------
 
   Runner: {
+
     initialize: function(id, game, cfg) {
       this.cfg          = Object.extend(game.Defaults || {}, cfg || {}); // use game defaults (if any) and extend with custom cfg (if any)
       this.fps          = this.cfg.fps || 60;
@@ -242,11 +236,9 @@ Game = {
 
     drawStats: function(ctx) {
       if (this.cfg.stats) {
-        ctx.fillStyle = 'white';
-        ctx.font = '9pt sans-serif';
-        ctx.fillText("frame: "  + this.stats.count,         this.width - 100, this.height - 75);
-        ctx.fillText("fps: "    + this.stats.fps,           this.width - 100, this.height - 60);
-        ctx.fillText("update: " + this.stats.update + "ms", this.width - 100, this.height - 45);
+        ctx.fillText("frame: "  + this.stats.count,         this.width - 100, this.height - 60);
+        ctx.fillText("fps: "    + this.stats.fps,           this.width - 100, this.height - 50);
+        ctx.fillText("update: " + this.stats.update + "ms", this.width - 100, this.height - 40);
         ctx.fillText("draw: "   + this.stats.draw   + "ms", this.width - 100, this.height - 30);
       }
     },
@@ -275,8 +267,5 @@ Game = {
       this.start();
       return result;
     }
-
-    //-------------------------------------------------------------------------
-
-  } // Game.Runner
-} // Game
+  } 
+}; 

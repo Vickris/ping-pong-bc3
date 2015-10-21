@@ -1,25 +1,27 @@
-//define an empty pon object
+//Define pong object
 Pong = {
 
   Defaults: {
-    width:        640,   // logical canvas width (browser will scale to physical canvas size - which is controlled by @media css queries)
-    height:       480,   // logical canvas height (ditto)
+    width:        640,   
+    height:       480,   
     wallWidth:    12,
     paddleWidth:  12,
     paddleHeight: 60,
-    paddleSpeed:  2,     // should be able to cross court vertically   in 2 seconds
+    paddleSpeed:  1,     // should be able to cross court vertically   in 2 seconds
     ballSpeed:    4,     // should be able to cross court horizontally in 4 seconds, at starting speed ...
     ballAccel:    8,     // ... but accelerate as time passes
     ballRadius:   5,
-    stats:        true
+    sound:        true
   },
 
   Colors: {
-    walls:           'white',
+    walls:           'red',
     ball:            'white',
-    score:           'white',
+    frames:          'black',
+    score:           'green',
+    footprint:       '#333',
     predictionGuess: 'yellow',
-    predictionExact: 'red'
+    predictionExact: 'green'
   },
 
   Images: [
@@ -27,9 +29,10 @@ Pong = {
     "images/press2.png",
     "images/winner.png"
   ],
-//Model reaction time - wait some period of time before making decisions
-//Model accuracy - the computer knows exactly where the ball will land,
-// add a random error factor to pretend that the computer is fallable.
+
+  //Model reaction time - wait some period of time before making decisions
+  //Model accuracy - the computer knows exactly where the ball will land,
+  // add a random error factor to pretend that the computer is fallable.
   Levels: [
     {aiReaction: 0.2, aiError:  40}, // 0:  ai is losing by 8
     {aiReaction: 0.3, aiError:  50}, // 1:  ai is losing by 7
@@ -50,8 +53,7 @@ Pong = {
     {aiReaction: 1.8, aiError: 200}  // 16: ai is winning by 8
   ],
 
-  //-----------------------------------------------------------------------------
-
+  
   initialize: function(runner, cfg) {
     Game.loadImages(Pong.Images, function(images) {
       this.cfg         = cfg;
@@ -66,15 +68,16 @@ Pong = {
       this.leftPaddle  = Object.construct(Pong.Paddle, this);
       this.rightPaddle = Object.construct(Pong.Paddle, this, true);
       this.ball        = Object.construct(Pong.Ball,   this);
+      this.sounds      = Object.construct(Pong.Sounds, this);
       this.runner.start();
     }.bind(this));
   },
 
+  // since we've already declared the keyboard inputs, starting and stopping a game is now possible
   startDemo:         function() { this.start(0); },
   startSinglePlayer: function() { this.start(1); },
   startDoublePlayer: function() { this.start(2); },
 
-// since we've already declared the keyboard inputs, starting and stopping a game is now possible
   start: function(numPlayers) {
     if (!this.playing) {
       this.scores = [0, 0];
@@ -88,7 +91,7 @@ Pong = {
   //pressing te escape key will result in this prompt
   stop: function(ask) {
     if (this.playing) {
-      if (!ask || this.runner.confirm('Abandon game in progress ?')) {
+      if (!ask || this.runner.confirm('Are you sure you want to quit this game ?')) {
         this.playing = false;
         this.leftPaddle.setAuto(false);
         this.rightPaddle.setAuto(false);
@@ -102,6 +105,7 @@ Pong = {
   },
 
   goal: function(playerNo) {
+    this.sounds.goal();
     this.scores[playerNo] += 1;
     if (this.scores[playerNo] == 9) {
       this.menu.declareWinner(playerNo);
@@ -113,8 +117,8 @@ Pong = {
       this.rightPaddle.setLevel(this.level(1));
     }
   },
-//While the game is in progress, the update() method needs 
-//to detect when goals are scored and when to declare a winner and stop the game:
+  //While the game is in progress, the update() method needs 
+  //to detect when goals are scored and when to declare a winner and stop the game:
   update: function(dt) {
     this.leftPaddle.update(dt, this.ball);
     this.rightPaddle.update(dt, this.ball);
@@ -122,12 +126,19 @@ Pong = {
       var dx = this.ball.dx;
       var dy = this.ball.dy;
       this.ball.update(dt, this.leftPaddle, this.rightPaddle);
+      if (this.ball.dx < 0 && dx > 0)
+        this.sounds.ping();
+      else if (this.ball.dx > 0 && dx < 0)
+        this.sounds.pong();
+      else if (this.ball.dy * dy < 0)
+        this.sounds.wall();
+
       if (this.ball.left > this.width)
         this.goal(0);
       else if (this.ball.right < 0)
         this.goal(1);
     }
-  }, 
+  },
 
   draw: function(ctx) {
     this.court.draw(ctx, this.scores[0], this.scores[1]);
@@ -139,7 +150,7 @@ Pong = {
       this.menu.draw(ctx);
   },
 
-//Switch statement for events called upon keypress
+  //Switch statement for events called upon keypress
   onkeydown: function(keyCode) {
     switch(keyCode) {
       case Game.KEY.ZERO:
@@ -186,9 +197,14 @@ Pong = {
     }
   },
 
-  //============
-  // MENU ITEMS
-  //============
+  showStats:       function(on) { this.cfg.stats = off; },
+  showFootprints:  function(on) { this.cfg.footprints = on; this.ball.footprints = []; },
+  showPredictions: function(on) { this.cfg.predictions = on; },
+  enableSound:     function(on) { this.cfg.sound = on; },
+
+  //===================
+  // MENU INFORMATION
+  //===================
 
   Menu: {
 
@@ -216,9 +232,43 @@ Pong = {
     }
 
   },
-  
-  //tell pong.court object how to draw walls
+
+  //================
+  // GAME SOUNDS
+  //================
+
+  Sounds: {    
+    initialize: function(pong) {
+      this.game      = pong;
+      this.supported = Game.ua.hasAudio;
+      if (this.supported) {
+        this.files = {
+          ping: Game.createAudio("sounds/ping.wav"),
+          pong: Game.createAudio("sounds/pong.wav"),
+          wall: Game.createAudio("sounds/wall.wav"),
+          goal: Game.createAudio("sounds/goal.wav")
+        };
+      }
+    },
+
+    play: function(name) {
+      if (this.supported && this.game.cfg.sound && this.files[name])
+        this.files[name].play();
+    },
+
+    ping: function() { this.play('ping'); },
+    pong: function() { this.play('pong'); },
+    wall: function() { this.play('wall'); },
+    goal: function() { this.play('goal'); }
+
+  },
+
+  //================
+  // COURT SECTION
+  //================
+
   Court: {
+
     initialize: function(pong) {
       var w  = pong.width;
       var h  = pong.height;
@@ -284,11 +334,11 @@ Pong = {
 
   },
 
-   //=============================================================================
-  // PADDLE
-  //=============================================================================
+  //================
+  // PADDLE CODE
+  //================
 
-  Paddle: {   
+  Paddle: {
 
     initialize: function(pong, rhs) {
       this.pong   = pong;
@@ -345,9 +395,10 @@ Pong = {
         this.setpos(this.x, y);
       }
     },
+
     //If the ball is moving away then do nothing
     //Otherwise, predict where the ball will meet the paddle’s edge of the court.
-    //If we have a prediction then move up or down to meet it.    
+    //If we have a prediction then move up or down to meet it. 
     ai: function(dt, ball) {
       if (((ball.x < this.left) && (ball.dx < 0)) ||
           ((ball.x > this.right) && (ball.dx > 0))) {
@@ -434,24 +485,24 @@ Pong = {
 
   },
 
-
-
-  //Tell ball how to move and how it should be drawn
+  //=======================
+  // CODE FOR BALL OBJECT
+  //=======================
+  //Tell the ball how to move and how it should be drawn
   Ball: {
     initialize: function(pong) {
       this.pong    = pong;
       this.radius  = pong.cfg.ballRadius;
-      this.minX    = pong.cfg.wallWidth + this.radius;
+      this.minX    = this.radius;
+      this.maxX    = pong.width - this.radius;
       this.minY    = pong.cfg.wallWidth + this.radius;
-      this.maxX    = pong.width  - pong.cfg.wallWidth - this.radius;
       this.maxY    = pong.height - pong.cfg.wallWidth - this.radius;
-      this.x       = Game.random(this.minX, this.maxX);
-      this.y       = Game.random(this.minY, this.maxY);
-      this.dx      = (this.maxX - this.minX) / (Game.random(1, 10) * Game.randomChoice(1, -1));
-      this.dy      = (this.maxY - this.minY) / (Game.random(1, 10) * Game.randomChoice(1, -1));
+      this.speed   = (this.maxX - this.minX) / pong.cfg.ballSpeed;
+      this.accel   = pong.cfg.ballAccel;
     },
 
     reset: function(playerNo) {
+      this.footprints = [];
       this.setpos(playerNo == 1 ?   this.maxX : this.minX,  Game.random(this.minY, this.maxY));
       this.setdir(playerNo == 1 ? -this.speed : this.speed, this.speed);
     },
@@ -466,8 +517,24 @@ Pong = {
     },
 
     setdir: function(dx, dy) {
+      this.dxChanged = ((this.dx < 0) != (dx < 0)); // did horizontal direction change
+      this.dyChanged = ((this.dy < 0) != (dy < 0)); // did vertical direction change
       this.dx = dx;
       this.dy = dy;
+    },
+
+    footprint: function() {
+      if (this.pong.cfg.footprints) {
+        if (!this.footprintCount || this.dxChanged || this.dyChanged) {
+          this.footprints.push({x: this.x, y: this.y});
+          if (this.footprints.length > 50)
+            this.footprints.shift();
+          this.footprintCount = 5;
+        }
+        else {
+          this.footprintCount--;
+        }
+      }
     },
 
     //this will keep on updating depending on the acceleration of the ball
@@ -510,27 +577,32 @@ Pong = {
 
       this.setpos(pos.x,  pos.y);
       this.setdir(pos.dx, pos.dy);
+      this.footprint();
     },
 
     draw: function(ctx) {
       var w = h = this.radius * 2;
-      ctx.fillStyle = 'white';
-      ctx.beginPath();
-      ctx.arc(this.x, this.y, this.radius, 0, 2*Math.PI, true);
-      ctx.fill();
-      ctx.closePath();
+      ctx.fillStyle = Pong.Colors.ball;
+      ctx.fillRect(this.x - this.radius, this.y - this.radius, w, h);
+      if (this.pong.cfg.footprints) {
+        var max = this.footprints.length;
+        ctx.strokeStyle = Pong.Colors.footprint;
+        for(var n = 0 ; n < max ; n++)
+          ctx.strokeRect(this.footprints[n].x - this.radius, this.footprints[n].y - this.radius, w, h);
+      }
     }
-    
+
   },
 
-/* Helper method for acceleration which will
--calculate the new position and speed of the ball.
--detect if it bounced off the top or bottom wall (simple bounds check)
--detect if it bounced off a paddle (see next section)
--tweak the y speed to simulate spin if the ball hit a moving paddle
-*/
+  /* Helper method for acceleration which will
+    -calculate the new position and speed of the ball.
+    -detect if it bounced off the top or bottom wall (simple bounds check)
+    -detect if it bounced off a paddle (see next section)
+    -tweak the y speed to simulate spin if the ball hit a moving paddle
+  */
+
   Helper: {
-//This the update method should 
+
     accelerate: function(x, y, dx, dy, accel, dt) {
       var x2  = x + (dt * dx) + (accel * dt * dt * 0.5);
       var y2  = y + (dt * dy) + (accel * dt * dt * 0.5);
@@ -538,7 +610,8 @@ Pong = {
       var dy2 = dy + (accel * dt) * (dy > 0 ? 1 : -1);
       return { nx: (x2-x), ny: (y2-y), x: x2, y: y2, dx: dx2, dy: dy2 };
     },
-// line intersection
+
+    // line intersection
     intercept: function(x1, y1, x2, y2, x3, y3, x4, y4, d) {
       var denom = ((y4-y3) * (x2-x1)) - ((x4-x3) * (y2-y1));
       if (denom != 0) {
@@ -554,7 +627,8 @@ Pong = {
       }
       return null;
     },
-//Ball and paddle intersection
+    
+    //Ball and paddle intersection
     ballIntercept: function(ball, rect, nx, ny) {
       var pt;
       if (nx < 0) {
@@ -593,7 +667,9 @@ Pong = {
       }
       return pt;
     }
+
   }
 
-};
+  //=============================================================================
 
+}; // Pong
