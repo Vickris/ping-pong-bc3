@@ -25,6 +25,28 @@ Pong = {
     "images/press2.png",
     "images/winner.png"
   ],
+//Model reaction time - wait some period of time before making decisions
+//Model accuracy - the computer knows exactly where the ball will land,
+// add a random error factor to pretend that the computer is fallable.
+  Levels: [
+    {aiReaction: 0.2, aiError:  40}, // 0:  ai is losing by 8
+    {aiReaction: 0.3, aiError:  50}, // 1:  ai is losing by 7
+    {aiReaction: 0.4, aiError:  60}, // 2:  ai is losing by 6
+    {aiReaction: 0.5, aiError:  70}, // 3:  ai is losing by 5
+    {aiReaction: 0.6, aiError:  80}, // 4:  ai is losing by 4
+    {aiReaction: 0.7, aiError:  90}, // 5:  ai is losing by 3
+    {aiReaction: 0.8, aiError: 100}, // 6:  ai is losing by 2
+    {aiReaction: 0.9, aiError: 110}, // 7:  ai is losing by 1
+    {aiReaction: 1.0, aiError: 120}, // 8:  tie
+    {aiReaction: 1.1, aiError: 130}, // 9:  ai is winning by 1
+    {aiReaction: 1.2, aiError: 140}, // 10: ai is winning by 2
+    {aiReaction: 1.3, aiError: 150}, // 11: ai is winning by 3
+    {aiReaction: 1.4, aiError: 160}, // 12: ai is winning by 4
+    {aiReaction: 1.5, aiError: 170}, // 13: ai is winning by 5
+    {aiReaction: 1.6, aiError: 180}, // 14: ai is winning by 6
+    {aiReaction: 1.7, aiError: 190}, // 15: ai is winning by 7
+    {aiReaction: 1.8, aiError: 200}  // 16: ai is winning by 8
+  ],
 
   //-----------------------------------------------------------------------------
 
@@ -160,6 +182,100 @@ Pong = {
       this.walls.push({x: 0,    y: h - ww, width: w,  height: ww});
       this.walls.push({x: 0,    y: 0,      width: ww, height:  h});
       this.walls.push({x: w-ww, y: 0,      width: ww, height:  h});    
+  },
+
+   //=============================================================================
+  // PADDLE
+  //=============================================================================
+
+  Paddle: {   
+    //If the ball is moving away then do nothing
+    //Otherwise, predict where the ball will meet the paddle’s edge of the court.
+    //If we have a prediction then move up or down to meet it.
+    ai: function(dt, ball) {
+      if (((ball.x < this.left) && (ball.dx < 0)) ||
+          ((ball.x > this.right) && (ball.dx > 0))) {
+        this.stopMovingUp();
+        this.stopMovingDown();
+        return;
+      }
+
+      this.predict(ball, dt);
+
+      if (this.prediction) {
+        if (this.prediction.y < (this.top + this.height/2 - 5)) {
+          this.stopMovingDown();
+          this.moveUp();
+        }
+        else if (this.prediction.y > (this.bottom - this.height/2 + 5)) {
+          this.stopMovingUp();
+          this.moveDown();
+        }
+        else {
+          this.stopMovingUp();
+          this.stopMovingDown();
+        }
+      }
+    },
+
+    predict: function(ball, dt) {
+      // only re-predict if the ball changed direction, or its been some amount of time since last prediction
+      if (this.prediction &&
+          ((this.prediction.dx * ball.dx) > 0) &&
+          ((this.prediction.dy * ball.dy) > 0) &&
+          (this.prediction.since < this.level.aiReaction)) {
+        this.prediction.since += dt;
+        return;
+      }
+
+      var pt  = Pong.Helper.ballIntercept(ball, {left: this.left, right: this.right, top: -10000, bottom: 10000}, ball.dx * 10, ball.dy * 10);
+      if (pt) {
+        var t = this.minY + ball.radius;
+        var b = this.maxY + this.height - ball.radius;
+
+        while ((pt.y < t) || (pt.y > b)) {
+          if (pt.y < t) {
+            pt.y = t + (t - pt.y);
+          }
+          else if (pt.y > b) {
+            pt.y = t + (b - t) - (pt.y - b);
+          }
+        }
+        this.prediction = pt;
+      }
+      else {
+        this.prediction = null;
+      }
+
+      if (this.prediction) {
+        this.prediction.since = 0;
+        this.prediction.dx = ball.dx;
+        this.prediction.dy = ball.dy;
+        this.prediction.radius = ball.radius;
+        this.prediction.exactX = this.prediction.x;
+        this.prediction.exactY = this.prediction.y;
+        var closeness = (ball.dx < 0 ? ball.x - this.right : this.left - ball.x) / this.pong.width;
+        var error = this.level.aiError * closeness;
+        this.prediction.y = this.prediction.y + Game.random(-error, error);
+      }
+    },
+
+    draw: function(ctx) {
+      ctx.fillStyle = Pong.Colors.walls;
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      if (this.prediction && this.pong.cfg.predictions) {
+        ctx.strokeStyle = Pong.Colors.predictionExact;
+        ctx.strokeRect(this.prediction.x - this.prediction.radius, this.prediction.exactY - this.prediction.radius, this.prediction.radius*2, this.prediction.radius*2);
+        ctx.strokeStyle = Pong.Colors.predictionGuess;
+        ctx.strokeRect(this.prediction.x - this.prediction.radius, this.prediction.y - this.prediction.radius, this.prediction.radius*2, this.prediction.radius*2);
+      }
+    },
+
+    moveUp:         function() { this.up   = 1; },
+    moveDown:       function() { this.down = 1; },
+    stopMovingUp:   function() { this.up   = 0; },
+    stopMovingDown: function() { this.down = 0; }
+
   },
   //Tell ball how to move and how it should be drawn
   Ball: {
