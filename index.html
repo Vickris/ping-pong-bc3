@@ -1,24 +1,40 @@
 <!DOCTYPE html> 
 <html>
 <head>
-  <title>Ping Pong</title> 
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>   
+  <title>Pong!</title> 
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> 
+  <link href="../pong.css" media="screen, print" rel="stylesheet" type="text/css" /> 
 </head> 
  
 <body> 
 
   <div id="sidebar">
 
-    <h2>This is Pong!</h2>
+    <h2>This is Pong!</h2>    
 
     <div class='description'>
       <p>
-        Using the Game.Runner from the previous section. You can build a simple animation 
-        by implementing the <b>update()</b> and <b>draw()</b> methods.
+        Adding a simple AI allows us to implement a single player game.
       </p>
       <p>
-        Here are some bouncing balls
+        Press <b>1</b> for a single player game.<br>
+        Press <b>2</b> for a double player game.<br>
+        Press <b>0</b> to watch the computer play itself.
       </p>
+      <p>
+        The AI consists of 2 components, a reaction time, and a prediction
+        error. The better the human player is, the faster the reaction time
+        and the lower the prediction error.
+      </p>
+      <p>
+        The AI recalculates its prediction every so often (based on its reaction
+        time) and every time the ball changes direction when it bounces off a wall
+      </p>
+      <p>
+        Here, when you play against the computer you will see a <span style='color:red'>red</span>
+        box indicating the exact point the ball will intercept and a <span style='color:yellow'>yellow</span>
+        box indicating where the computer thinks it will be.
+      </p> 
     </div>
 
   </div>
