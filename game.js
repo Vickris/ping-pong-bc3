@@ -44,12 +44,11 @@ if (!Object.extend) {
   };
 }
 
-//=============================================================================
-// GAME
-//=============================================================================
+//================
+// CODE FOR GAME
+//================
 
 Game = {
-
   compatible: function() {
     return Object.create &&
            Object.extend &&
@@ -106,7 +105,7 @@ Game = {
   createAudio: function(src) {
     try {
       var a = new Audio(src);
-      a.volume = 0.1; // lets be real quiet please
+      a.volume = 0.1; // one can adjust the volume by increasing or decreasing the figure
       return a;
     } catch (e) {
       return null;
@@ -171,7 +170,6 @@ Game = {
   //-----------------------------------------------------------------------------
 
   Runner: {
-
     initialize: function(id, game, cfg) {
       this.cfg          = Object.extend(game.Defaults || {}, cfg || {}); // use game defaults (if any) and extend with custom cfg (if any)
       this.fps          = this.cfg.fps || 60;

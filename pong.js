@@ -15,9 +15,11 @@ Pong = {
   },
 
   Colors: {
-    walls: 'white',
-    ball:  'white',
-    score: 'white'
+    walls:           'white',
+    ball:            'white',
+    score:           'white',
+    predictionGuess: 'yellow',
+    predictionExact: 'red'
   },
 
   Images: [
@@ -72,22 +74,43 @@ Pong = {
   startSinglePlayer: function() { this.start(1); },
   startDoublePlayer: function() { this.start(2); },
 
-// since we've already dedclared the keyboard inputs, starting and stopping a game is now possible
+// since we've already declared the keyboard inputs, starting and stopping a game is now possible
   start: function(numPlayers) {
     if (!this.playing) {
       this.scores = [0, 0];
       this.playing = true;
+      this.leftPaddle.setAuto(numPlayers < 1, this.level(0));
+      this.rightPaddle.setAuto(numPlayers < 2, this.level(1));
       this.ball.reset();
       this.runner.hideCursor();
     }
   },
-
+  //pressing te escape key will result in this prompt
   stop: function(ask) {
     if (this.playing) {
       if (!ask || this.runner.confirm('Abandon game in progress ?')) {
         this.playing = false;
+        this.leftPaddle.setAuto(false);
+        this.rightPaddle.setAuto(false);
         this.runner.showCursor();
       }
+    }
+  },
+
+  level: function(playerNo) {
+    return 8 + (this.scores[playerNo] - this.scores[playerNo ? 0 : 1]);
+  },
+
+  goal: function(playerNo) {
+    this.scores[playerNo] += 1;
+    if (this.scores[playerNo] == 9) {
+      this.menu.declareWinner(playerNo);
+      this.stop();
+    }
+    else {
+      this.ball.reset(playerNo);
+      this.leftPaddle.setLevel(this.level(0));
+      this.rightPaddle.setLevel(this.level(1));
     }
   },
 //While the game is in progress, the update() method needs 
@@ -99,77 +122,101 @@ Pong = {
       var dx = this.ball.dx;
       var dy = this.ball.dy;
       this.ball.update(dt, this.leftPaddle, this.rightPaddle);
-
       if (this.ball.left > this.width)
         this.goal(0);
       else if (this.ball.right < 0)
         this.goal(1);
     }
-  },
-
-  goal: function(playerNo) {
-    this.scores[playerNo] += 1;
-    if (this.scores[playerNo] == 1) {
-      this.menu.declareWinner(playerNo);
-      this.stop();
-    }
-    else {
-      this.ball.reset(playerNo);
-    }
-  },
-
-  update: function(dt) {
-    this.leftPaddle.update(dt, this.ball);
-    this.rightPaddle.update(dt, this.ball);
-    if (this.playing) {
-      var dx = this.ball.dx;
-      var dy = this.ball.dy;
-      this.ball.update(dt, this.leftPaddle, this.rightPaddle);
-
-      if (this.ball.left > this.width)
-        this.goal(0);
-      else if (this.ball.right < 0)
-        this.goal(1);
-    }
-  },
+  }, 
 
   draw: function(ctx) {
-    this.court.draw(ctx);
-    this.ball.draw(ctx);
+    this.court.draw(ctx, this.scores[0], this.scores[1]);
+    this.leftPaddle.draw(ctx);
+    this.rightPaddle.draw(ctx);
+    if (this.playing)
+      this.ball.draw(ctx);
+    else
+      this.menu.draw(ctx);
   },
 
-//create switch statement for events called upon keypress
+//Switch statement for events called upon keypress
   onkeydown: function(keyCode) {
     switch(keyCode) {
-      case Game.KEY.ZERO: this.startDemo();            break;
-      case Game.KEY.ONE:  this.startSinglePlayer();    break;
-      case Game.KEY.TWO:  this.startDoublePlayer();    break;
-      case Game.KEY.ESC:  this.stop(true);             break;
-      case Game.KEY.Q:    this.leftPaddle.moveUp();    break;
-      case Game.KEY.A:    this.leftPaddle.moveDown();  break;
-      case Game.KEY.P:    this.rightPaddle.moveUp();   break;
-      case Game.KEY.L:    this.rightPaddle.moveDown(); break;
+      case Game.KEY.ZERO:
+        this.startDemo();
+      break;
+      case Game.KEY.ONE:
+        this.startSinglePlayer();    
+      break;
+      case Game.KEY.TWO:
+        this.startDoublePlayer();    
+      break;
+      case Game.KEY.ESC:
+        this.stop(true);
+      break;
+      case Game.KEY.Q:
+        if (!this.leftPaddle.auto)  this.leftPaddle.moveUp();
+      break;
+      case Game.KEY.A:
+        if (!this.leftPaddle.auto)  this.leftPaddle.moveDown();  
+      break;
+      case Game.KEY.P:    
+        if (!this.rightPaddle.auto) this.rightPaddle.moveUp();   
+      break;
+      case Game.KEY.L:
+        if (!this.rightPaddle.auto) this.rightPaddle.moveDown(); 
+      break;
     }
   },
 
   onkeyup: function(keyCode) {
     switch(keyCode) {
-      case Game.KEY.Q: this.leftPaddle.stopMovingUp();    break;
-      case Game.KEY.A: this.leftPaddle.stopMovingDown();  break;
-      case Game.KEY.P: this.rightPaddle.stopMovingUp();   break;
-      case Game.KEY.L: this.rightPaddle.stopMovingDown(); break;
-    }
-  },
-  // The game is stopped when a winner is declared, it can also be stopped in response to the user hitting the ESC key
-  stop: function(ask) {
-    if (this.playing) {
-      if (!ask || this.runner.confirm('Abandon game in progress ?')) {
-        this.playing = false;
-        this.runner.showCursor();
-      }
+      case Game.KEY.Q: 
+        if (!this.leftPaddle.auto)  this.leftPaddle.stopMovingUp();    
+      break;
+      case Game.KEY.A:
+       if (!this.leftPaddle.auto)  this.leftPaddle.stopMovingDown();
+      break;
+      case Game.KEY.P: 
+        if (!this.rightPaddle.auto) this.rightPaddle.stopMovingUp();   
+      break;
+      case Game.KEY.L:       
+        if (!this.rightPaddle.auto) this.rightPaddle.stopMovingDown(); 
+      break;
     }
   },
 
+  //============
+  // MENU ITEMS
+  //============
+
+  Menu: {
+
+    initialize: function(pong) {
+      var press1 = pong.images["images/press1.png"];
+      var press2 = pong.images["images/press2.png"];
+      var winner = pong.images["images/winner.png"];
+      this.press1  = { image: press1, x: 10,                                                 y: pong.cfg.wallWidth     };
+      this.press2  = { image: press2, x: (pong.width - press2.width - 10),                   y: pong.cfg.wallWidth     };
+      this.winner1 = { image: winner, x: (pong.width/2) - winner.width - pong.cfg.wallWidth, y: 6 * pong.cfg.wallWidth };
+      this.winner2 = { image: winner, x: (pong.width/2)                + pong.cfg.wallWidth, y: 6 * pong.cfg.wallWidth };
+    },
+
+    declareWinner: function(playerNo) {
+      this.winner = playerNo;
+    },
+
+    draw: function(ctx) {
+      ctx.drawImage(this.press1.image, this.press1.x, this.press1.y);
+      ctx.drawImage(this.press2.image, this.press2.x, this.press2.y);
+      if (this.winner == 0)
+        ctx.drawImage(this.winner1.image, this.winner1.x, this.winner1.y);
+      else if (this.winner == 1)
+        ctx.drawImage(this.winner2.image, this.winner2.x, this.winner2.y);
+    }
+
+  },
+  
   //tell pong.court object how to draw walls
   Court: {
     initialize: function(pong) {
@@ -177,11 +224,64 @@ Pong = {
       var h  = pong.height;
       var ww = pong.cfg.wallWidth;
 
+      this.ww    = ww;
       this.walls = [];
-      this.walls.push({x: 0,    y: 0,      width: w,  height: ww});
-      this.walls.push({x: 0,    y: h - ww, width: w,  height: ww});
-      this.walls.push({x: 0,    y: 0,      width: ww, height:  h});
-      this.walls.push({x: w-ww, y: 0,      width: ww, height:  h});    
+      this.walls.push({x: 0, y: 0,      width: w, height: ww});
+      this.walls.push({x: 0, y: h - ww, width: w, height: ww});
+      var nMax = (h / (ww*2));
+      for(var n = 0 ; n < nMax ; n++) { // draw dashed halfway line
+        this.walls.push({x: (w / 2) - (ww / 2), 
+                         y: (ww / 2) + (ww * 2 * n), 
+                         width: ww, height: ww});
+      }
+
+      var sw = 3*ww;
+      var sh = 4*ww;
+      this.score1 = {x: 0.5 + (w/2) - 1.5*ww - sw, y: 2*ww, w: sw, h: sh};
+      this.score2 = {x: 0.5 + (w/2) + 1.5*ww,      y: 2*ww, w: sw, h: sh};
+    },
+
+    draw: function(ctx, scorePlayer1, scorePlayer2) {
+      ctx.fillStyle = Pong.Colors.walls;
+      for(var n = 0 ; n < this.walls.length ; n++)
+        ctx.fillRect(this.walls[n].x, this.walls[n].y, this.walls[n].width, this.walls[n].height);
+      this.drawDigit(ctx, scorePlayer1, this.score1.x, this.score1.y, this.score1.w, this.score1.h);
+      this.drawDigit(ctx, scorePlayer2, this.score2.x, this.score2.y, this.score2.w, this.score2.h);
+    },
+
+    drawDigit: function(ctx, n, x, y, w, h) {
+      ctx.fillStyle = Pong.Colors.score;
+      var dw = dh = this.ww*4/5;
+      var blocks = Pong.Court.DIGITS[n];
+      if (blocks[0])
+        ctx.fillRect(x, y, w, dh);
+      if (blocks[1])
+        ctx.fillRect(x, y, dw, h/2);
+      if (blocks[2])
+        ctx.fillRect(x+w-dw, y, dw, h/2);
+      if (blocks[3])
+        ctx.fillRect(x, y + h/2 - dh/2, w, dh);
+      if (blocks[4])
+        ctx.fillRect(x, y + h/2, dw, h/2);
+      if (blocks[5])
+        ctx.fillRect(x+w-dw, y + h/2, dw, h/2);
+      if (blocks[6])
+        ctx.fillRect(x, y+h-dh, w, dh);
+    },
+
+    DIGITS: [
+      [1, 1, 1, 0, 1, 1, 1], // 0
+      [0, 0, 1, 0, 0, 1, 0], // 1
+      [1, 0, 1, 1, 1, 0, 1], // 2
+      [1, 0, 1, 1, 0, 1, 1], // 3
+      [0, 1, 1, 1, 0, 1, 0], // 4
+      [1, 1, 0, 1, 0, 1, 1], // 5
+      [1, 1, 0, 1, 1, 1, 1], // 6
+      [1, 0, 1, 0, 0, 1, 0], // 7
+      [1, 1, 1, 1, 1, 1, 1], // 8
+      [1, 1, 1, 1, 0, 1, 0]  // 9
+    ]
+
   },
 
    //=============================================================================
@@ -189,9 +289,65 @@ Pong = {
   //=============================================================================
 
   Paddle: {   
+
+    initialize: function(pong, rhs) {
+      this.pong   = pong;
+      this.width  = pong.cfg.paddleWidth;
+      this.height = pong.cfg.paddleHeight;
+      this.minY   = pong.cfg.wallWidth;
+      this.maxY   = pong.height - pong.cfg.wallWidth - this.height;
+      this.speed  = (this.maxY - this.minY) / pong.cfg.paddleSpeed;
+      this.setpos(rhs ? pong.width - this.width : 0, this.minY + (this.maxY - this.minY)/2);
+      this.setdir(0);
+    },
+
+    setpos: function(x, y) {
+      this.x      = x;
+      this.y      = y;
+      this.left   = this.x;
+      this.right  = this.left + this.width;
+      this.top    = this.y;
+      this.bottom = this.y + this.height;
+    },
+
+    setdir: function(dy) {
+      this.up   = (dy < 0 ? -dy : 0);
+      this.down = (dy > 0 ?  dy : 0);
+    },
+
+    setAuto: function(on, level) {
+      if (on && !this.auto) {
+        this.auto = true;
+        this.setLevel(level);
+      }
+      else if (!on && this.auto) {
+        this.auto = false;
+        this.setdir(0);
+      }
+    },
+
+    setLevel: function(level) {
+      if (this.auto)
+        this.level = Pong.Levels[level];
+    },
+
+    update: function(dt, ball) {
+      if (this.auto)
+        this.ai(dt, ball);
+
+      var amount = this.down - this.up;
+      if (amount != 0) {
+        var y = this.y + (amount * dt * this.speed);
+        if (y < this.minY)
+          y = this.minY;
+        else if (y > this.maxY)
+          y = this.maxY;
+        this.setpos(this.x, y);
+      }
+    },
     //If the ball is moving away then do nothing
     //Otherwise, predict where the ball will meet the paddle’s edge of the court.
-    //If we have a prediction then move up or down to meet it.
+    //If we have a prediction then move up or down to meet it.    
     ai: function(dt, ball) {
       if (((ball.x < this.left) && (ball.dx < 0)) ||
           ((ball.x > this.right) && (ball.dx > 0))) {
@@ -277,6 +433,9 @@ Pong = {
     stopMovingDown: function() { this.down = 0; }
 
   },
+
+
+
   //Tell ball how to move and how it should be drawn
   Ball: {
     initialize: function(pong) {
@@ -292,9 +451,26 @@ Pong = {
       this.dy      = (this.maxY - this.minY) / (Game.random(1, 10) * Game.randomChoice(1, -1));
     },
 
-    
-    //this will keep on updating depending on the acceleration of the ball
+    reset: function(playerNo) {
+      this.setpos(playerNo == 1 ?   this.maxX : this.minX,  Game.random(this.minY, this.maxY));
+      this.setdir(playerNo == 1 ? -this.speed : this.speed, this.speed);
+    },
 
+    setpos: function(x, y) {
+      this.x      = x;
+      this.y      = y;
+      this.left   = this.x - this.radius;
+      this.top    = this.y - this.radius;
+      this.right  = this.x + this.radius;
+      this.bottom = this.y + this.radius;
+    },
+
+    setdir: function(dx, dy) {
+      this.dx = dx;
+      this.dy = dy;
+    },
+
+    //this will keep on updating depending on the acceleration of the ball
     update: function(dt, leftPaddle, rightPaddle) {
 
       pos = Pong.Helper.accelerate(this.x, this.y, this.dx, this.dy, this.accel, dt);
@@ -345,7 +521,7 @@ Pong = {
       ctx.closePath();
     }
     
-  }
+  },
 
 /* Helper method for acceleration which will
 -calculate the new position and speed of the ball.
@@ -417,5 +593,7 @@ Pong = {
       }
       return pt;
     }
-
   }
+
+};
+
