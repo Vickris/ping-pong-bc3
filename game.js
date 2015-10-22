@@ -59,7 +59,7 @@ Game = {
       return Object.construct(Game.Runner, id, game, cfg).game; // return the game instance, not the runner (caller can always get at the runner via game.runner)
   },
 
-  ua: function() { // should avoid user agent sniffing... but sometimes you just gotta do what you gotta do
+  ua: function() { //but sometimes you just gotta do what you gotta..........should avoid user agent sniffing...  
     var ua  = navigator.userAgent.toLowerCase();
     var key =        ((ua.indexOf("opera")   > -1) ? "opera"   : null);
         key = key || ((ua.indexOf("firefox") > -1) ? "firefox" : null);
@@ -87,8 +87,12 @@ Game = {
     }
   }(),
 
-  addEvent:    function(obj, type, fn) { obj.addEventListener(type, fn, false);    },
-  removeEvent: function(obj, type, fn) { obj.removeEventListener(type, fn, false); },
+  addEvent:    function(obj, type, fn) { 
+    obj.addEventListener(type, fn, false);    
+  },
+  removeEvent: function(obj, type, fn) { 
+    obj.removeEventListener(type, fn, false); 
+  },
 
   ready: function(fn) {
     if (Game.compatible())

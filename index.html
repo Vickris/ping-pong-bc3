@@ -1,7 +1,7 @@
 <!DOCTYPE html> 
 <html>
 <head>
-  <title>Pong!</title> 
+  <title>Ping Pong</title> 
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/> 
   <link href="pong.css" media="screen, print" rel="stylesheet" type="text/css" /> 
 </head> 
@@ -10,12 +10,21 @@
 
   <div id="sidebar">
 
-    <h2>This is Pong!</h2>    
+    <h2>Ping Pong it is</h2>    
 
     <div class='description'>
       <p>
         This is the online version of Pong.
       </p>
+      <p>
+        Select difficulty level to start the game. Refresh page if you want to change the difficulty level. <b>First person</b> to reach <b>5 wins</b> the game.
+      </p>
+      <h3>Select difficulty level</h3>
+      <form action="">
+        <input type="radio" name="level" value="8">Beginner<br> 
+        <input type="radio" name="level" value="4">Intermediate<br>
+        <input type="radio" name="level" value="2">Pro<br>        
+      </form>
       <p>
         Press <b>1</b> for a single player game.<br>
         Press <b>2</b> for a double player game.<br>
@@ -27,13 +36,7 @@
       </p>      
       <p>
         <b>Esc</b> to pause or quit the game.
-      </p>
-      <h3>Select difficulty level</h3>
-      <form action="">
-        <input type="radio" name="level" value="12">Beginner<br> 
-        <input type="radio" name="level" value="6">Intermediate<br>
-        <input type="radio" name="level" value="2">Pro<br>        
-      </form>
+      </p>      
                 
     </div>
     <h3>Settings</h3>
@@ -64,22 +67,35 @@
   <script src="pong.js" type="text/javascript"></script>
   <script type="text/javascript">
   Game.ready(function() {
+    var radios = [].slice.call(document.querySelectorAll('input[name=level]'));
 
-    var size        = document.getElementById('size');
-    var sound       = document.getElementById('sound');
-    var footprints  = document.getElementById('footprints');
-    var predictions = document.getElementById('predictions');
+    radios.forEach(function(radio) {
+        radio.addEventListener('change', function() { 
+            radios.forEach(function(r) {
+              //disable remaining buttons after selecting one button
+                r.disabled = r !== radio;
+            });
+            var size        = document.getElementById('size');
+            var sound       = document.getElementById('sound');
+            var footprints  = document.getElementById('footprints');
+            var predictions = document.getElementById('predictions');
 
-    var pong = Game.start('game', Pong, {
-      sound:       sound.checked,      
-      footprints:  footprints.checked,
-      predictions: predictions.checked
+            var pong = Game.start('game', Pong, {
+              sound:       sound.checked,      
+              footprints:  footprints.checked,
+              predictions: predictions.checked
+            });
+
+            Game.addEvent(sound,       'change', function() { pong.enableSound(sound.checked);           });    
+            Game.addEvent(footprints,  'change', function() { pong.showFootprints(footprints.checked);   });
+            Game.addEvent(predictions, 'change', function() { pong.showPredictions(predictions.checked); });
+
+            console.log(Pong.Defaults.ballSpeed)
+            Pong.Defaults.ballSpeed = Number(radio.value);
+            console.log(Pong.Defaults.ballSpeed)
+
+        });
     });
-
-    Game.addEvent(sound,       'change', function() { pong.enableSound(sound.checked);           });    
-    Game.addEvent(footprints,  'change', function() { pong.showFootprints(footprints.checked);   });
-    Game.addEvent(predictions, 'change', function() { pong.showPredictions(predictions.checked); });
-
   });
   </script>
 

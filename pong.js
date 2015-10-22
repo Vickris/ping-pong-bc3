@@ -114,7 +114,7 @@ Pong = {
   goal: function(playerNo) {
     this.sounds.goal();
     this.scores[playerNo] += 1;
-    if (this.scores[playerNo] == 9) {
+    if (this.scores[playerNo] == 5) {
       this.menu.declareWinner(playerNo);
       this.stop();
     }
@@ -204,9 +204,15 @@ Pong = {
     }
   },
   
-  showFootprints:  function(on) { this.cfg.footprints = on; this.ball.footprints = []; },
-  showPredictions: function(on) { this.cfg.predictions = on; },
-  enableSound:     function(on) { this.cfg.sound = on; },
+  showFootprints:  function(on) { 
+    this.cfg.footprints = on; this.ball.footprints = []; 
+  },
+  showPredictions: function(on) { 
+    this.cfg.predictions = on; 
+  },
+  enableSound: function(on) {
+    this.cfg.sound = on; 
+  },
 
   //===================
   // MENU INFORMATION
@@ -678,12 +684,4 @@ Pong = {
   }  
 }; // Pong
 
-var radios = document.getElementsByName('level');   
-for(var i = 0; i < radios.length; i++ ) {  
-  radios[i].onclick = function() {     
-    console.log(Pong.Defaults.ballSpeed)
-    Pong.Defaults.ballSpeed = Number(this.value);
-    console.log(Pong.Defaults.ballSpeed) 
 
-  }
-}
