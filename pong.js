@@ -12,14 +12,14 @@ Pong = {
     ballAccel:    8,     // ... but accelerate as time passes
     ballRadius:   5,
     sound:        true
-  },
-
+  }, 
+  
   Colors: {
     walls:           'red',
     ball:            'white',
     frames:          'black',
     score:           'green',
-    footprint:       '#333',
+    footprint:       'yellow',
     predictionGuess: 'yellow',
     predictionExact: 'green'
   },
@@ -74,9 +74,16 @@ Pong = {
   },
 
   // since we've already declared the keyboard inputs, starting and stopping a game is now possible
-  startDemo:         function() { this.start(0); },
-  startSinglePlayer: function() { this.start(1); },
-  startDoublePlayer: function() { this.start(2); },
+  startDemo: function() {
+        this.start(0);
+    },
+    startSinglePlayer: function() {
+        this.start(1);
+    },
+    startDoublePlayer: function() {
+        this.start(2);
+    },
+
 
   start: function(numPlayers) {
     if (!this.playing) {
@@ -155,28 +162,28 @@ Pong = {
     switch(keyCode) {
       case Game.KEY.ZERO:
         this.startDemo();
-      break;
+        break;
       case Game.KEY.ONE:
         this.startSinglePlayer();    
-      break;
+        break;
       case Game.KEY.TWO:
         this.startDoublePlayer();    
-      break;
+        break;
       case Game.KEY.ESC:
         this.stop(true);
-      break;
+        break;
       case Game.KEY.Q:
         if (!this.leftPaddle.auto)  this.leftPaddle.moveUp();
-      break;
+        break;
       case Game.KEY.A:
         if (!this.leftPaddle.auto)  this.leftPaddle.moveDown();  
-      break;
+        break;
       case Game.KEY.P:    
         if (!this.rightPaddle.auto) this.rightPaddle.moveUp();   
-      break;
+        break;
       case Game.KEY.L:
         if (!this.rightPaddle.auto) this.rightPaddle.moveDown(); 
-      break;
+        break;
     }
   },
 
@@ -184,20 +191,19 @@ Pong = {
     switch(keyCode) {
       case Game.KEY.Q: 
         if (!this.leftPaddle.auto)  this.leftPaddle.stopMovingUp();    
-      break;
+        break;
       case Game.KEY.A:
-       if (!this.leftPaddle.auto)  this.leftPaddle.stopMovingDown();
-      break;
+        if (!this.leftPaddle.auto)  this.leftPaddle.stopMovingDown();
+        break;
       case Game.KEY.P: 
         if (!this.rightPaddle.auto) this.rightPaddle.stopMovingUp();   
-      break;
+        break;
       case Game.KEY.L:       
         if (!this.rightPaddle.auto) this.rightPaddle.stopMovingDown(); 
-      break;
+        break;
     }
   },
-
-  showStats:       function(on) { this.cfg.stats = off; },
+  
   showFootprints:  function(on) { this.cfg.footprints = on; this.ball.footprints = []; },
   showPredictions: function(on) { this.cfg.predictions = on; },
   enableSound:     function(on) { this.cfg.sound = on; },
@@ -205,6 +211,7 @@ Pong = {
   //===================
   // MENU INFORMATION
   //===================
+
 
   Menu: {
 
@@ -401,7 +408,7 @@ Pong = {
     //If we have a prediction then move up or down to meet it. 
     ai: function(dt, ball) {
       if (((ball.x < this.left) && (ball.dx < 0)) ||
-          ((ball.x > this.right) && (ball.dx > 0))) {
+          ((ball.x > this.right) && (ball.dx > 0))) {        
         this.stopMovingUp();
         this.stopMovingDown();
         return;
@@ -627,49 +634,56 @@ Pong = {
       }
       return null;
     },
-    
+
     //Ball and paddle intersection
     ballIntercept: function(ball, rect, nx, ny) {
       var pt;
       if (nx < 0) {
         pt = Pong.Helper.intercept(ball.x, ball.y, ball.x + nx, ball.y + ny, 
-                                   rect.right  + ball.radius, 
-                                   rect.top    - ball.radius, 
-                                   rect.right  + ball.radius, 
-                                   rect.bottom + ball.radius, 
-                                   "right");
+             rect.right  + ball.radius, 
+             rect.top    - ball.radius, 
+             rect.right  + ball.radius, 
+             rect.bottom + ball.radius, 
+             "right");
       }
       else if (nx > 0) {
         pt = Pong.Helper.intercept(ball.x, ball.y, ball.x + nx, ball.y + ny, 
-                                   rect.left   - ball.radius, 
-                                   rect.top    - ball.radius, 
-                                   rect.left   - ball.radius, 
-                                   rect.bottom + ball.radius,
-                                   "left");
+             rect.left   - ball.radius, 
+             rect.top    - ball.radius, 
+             rect.left   - ball.radius, 
+             rect.bottom + ball.radius,
+             "left");
       }
       if (!pt) {
         if (ny < 0) {
           pt = Pong.Helper.intercept(ball.x, ball.y, ball.x + nx, ball.y + ny, 
-                                     rect.left   - ball.radius, 
-                                     rect.bottom + ball.radius, 
-                                     rect.right  + ball.radius, 
-                                     rect.bottom + ball.radius,
-                                     "bottom");
+               rect.left   - ball.radius, 
+               rect.bottom + ball.radius, 
+               rect.right  + ball.radius, 
+               rect.bottom + ball.radius,
+               "bottom");
         }
         else if (ny > 0) {
-          pt = Pong.Helper.intercept(ball.x, ball.y, ball.x + nx, ball.y + ny, 
-                                     rect.left   - ball.radius, 
-                                     rect.top    - ball.radius, 
-                                     rect.right  + ball.radius, 
-                                     rect.top    - ball.radius,
-                                     "top");
+          pt = Pong.Helper.intercept(ball.x, ball.y, ball.x + nx, ball.y + ny,
+               rect.left - ball.radius,
+               rect.top - ball.radius,
+               rect.right + ball.radius,
+               rect.top - ball.radius,
+               "top");
+
         }
       }
       return pt;
     }
+  }  
+}; // Pong
+
+var radios = document.getElementsByName('level');   
+for(var i = 0; i < radios.length; i++ ) {  
+  radios[i].onclick = function() {     
+    console.log(Pong.Defaults.ballSpeed)
+    Pong.Defaults.ballSpeed = Number(this.value);
+    console.log(Pong.Defaults.ballSpeed) 
 
   }
-
-  //=============================================================================
-
-}; // Pong
+}
