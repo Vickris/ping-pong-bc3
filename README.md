@@ -18,7 +18,6 @@ The first person to hit a score of 5 WINS.
 Planned features
 ----------------
 - [x] Main menu
-- [x] Game menu
 - [x] 2 Player mode
 - [x] 1 Player mode
 - [x] Possibility to pause the game
@@ -26,8 +25,8 @@ Planned features
 
 Additional features (if the basic features are working)
 --------------------------------------------------------
-- [x] Change the difficulty level
-- [x] Sound settings: Turn sounds on/off
+- Change the difficulty level
+- Sound settings: Turn sounds on/off
 - Footprints to show ball trail
 - Predictions showing where the computer thinks the ball will land
 - Computer can play against itself
@@ -39,5 +38,5 @@ Problems and Learnings (My personal notes)
 --------------------------------------------
 
 - Passing variables and object properties around: You really need to pay attention to the scope!
-- Adding eventslisteners and handlers successfully without prior experience in vanilla js. I knew how to do it using jquery: stack overflow will come in handy.
+- Adding eventslisteners and handlers successfully without prior experience in vanilla without using jquery: stack overflow will come in handy.
 - No need to get stuck for hours over something when someone around you has done the project before or knows more than you. Ask for help.
