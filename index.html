@@ -21,9 +21,9 @@
       </p>
       <h3>Select difficulty level</h3>
       <form action="">
-        <input type="radio" name="level" value="8">Beginner<br> 
-        <input type="radio" name="level" value="4">Intermediate<br>
-        <input type="radio" name="level" value="2">Pro<br>        
+        <input type="radio" name="level" value="2">Beginner<br> 
+        <input type="radio" name="level" value="8">Intermediate<br>
+        <input type="radio" name="level" value="20">Pro<br>        
       </form>
       <p>
         Press <b>1</b> for a single player game.<br>
@@ -86,13 +86,17 @@
               predictions: predictions.checked
             });
 
-            Game.addEvent(sound,       'change', function() { pong.enableSound(sound.checked);           });    
-            Game.addEvent(footprints,  'change', function() { pong.showFootprints(footprints.checked);   });
-            Game.addEvent(predictions, 'change', function() { pong.showPredictions(predictions.checked); });
+            Game.addEvent(sound, 'change', function() { 
+              pong.enableSound(sound.checked);           
+            });    
+            Game.addEvent(footprints, 'change', function() { 
+              pong.showFootprints(footprints.checked);   
+            });
+            Game.addEvent(predictions, 'change', function() { 
+              pong.showPredictions(predictions.checked); 
+            });
 
-            console.log(Pong.Defaults.ballSpeed)
-            Pong.Defaults.ballSpeed = Number(radio.value);
-            console.log(Pong.Defaults.ballSpeed)
+            Pong.Defaults.ballAccel = Number(radio.value);            
 
         });
     });

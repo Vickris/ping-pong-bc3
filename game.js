@@ -252,11 +252,19 @@ Game = {
       Game.addEvent(document, 'keyup',   this.onkeyup.bind(this));
     },
 
-    onkeydown: function(ev) { if (this.game.onkeydown) this.game.onkeydown(ev.keyCode); },
-    onkeyup:   function(ev) { if (this.game.onkeyup)   this.game.onkeyup(ev.keyCode);   },
+    onkeydown: function(ev) { 
+      if (this.game.onkeydown) this.game.onkeydown(ev.keyCode); 
+    },
+    onkeyup:   function(ev) { 
+      if (this.game.onkeyup)   this.game.onkeyup(ev.keyCode);   
+    },
 
-    hideCursor: function() { this.canvas.style.cursor = 'none'; },
-    showCursor: function() { this.canvas.style.cursor = 'auto'; },
+    hideCursor: function() { 
+      this.canvas.style.cursor = 'none'; 
+    },
+    showCursor: function() { 
+      this.canvas.style.cursor = 'auto'; 
+    },
 
     alert: function(msg) {
       this.stop(); // alert blocks thread, so need to stop game loop in order to avoid sending huge dt values to next update
