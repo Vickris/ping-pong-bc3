@@ -43,14 +43,12 @@
     <div class='settings'>
       <input type='checkbox' id='sound'>
       <label for='sound'>sound: </label>      
-    </div>  
-    
+    </div>     
 
     <div class='settings'>
       <input type='checkbox' id='predictions'>
       <label for='predictions'>predictions: </label>      
     </div>
-
   </div>
 
   <canvas id="game">
@@ -67,16 +65,16 @@
 
     radios.forEach(function(radio) {
         radio.addEventListener('change', function() { 
-            radios.forEach(function(r) {
+            radios.forEach(function(r) {              
               //disable remaining buttons after selecting one button
-                r.disabled = r !== radio;
+              r.disabled = r !== radio;
             });
             var size        = document.getElementById('size');
             var sound       = document.getElementById('sound');            
             var predictions = document.getElementById('predictions');
-            
+
             var pong = Game.start('game', Pong, {
-              sound:       sound.checked,   
+              sound: sound.checked,   
               predictions: predictions.checked
             });
 
