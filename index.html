@@ -72,22 +72,17 @@
                 r.disabled = r !== radio;
             });
             var size        = document.getElementById('size');
-            var sound       = document.getElementById('sound');
-            var footprints  = document.getElementById('footprints');
+            var sound       = document.getElementById('sound');            
             var predictions = document.getElementById('predictions');
-
+            
             var pong = Game.start('game', Pong, {
-              sound:       sound.checked,      
-              footprints:  footprints.checked,
+              sound:       sound.checked,   
               predictions: predictions.checked
             });
 
             Game.addEvent(sound, 'change', function() { 
               pong.enableSound(sound.checked);           
-            });    
-            Game.addEvent(footprints, 'change', function() { 
-              pong.showFootprints(footprints.checked);   
-            });
+            });   
             Game.addEvent(predictions, 'change', function() { 
               pong.showPredictions(predictions.checked); 
             });
