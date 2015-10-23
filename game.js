@@ -41,9 +41,9 @@ if (!Object.extend) {
   };
 }
 
-//==============
-//CODE FOR GAME
-//==============
+//====================
+//CODE FOR GAME Runner
+//====================
 
 Game = {
   compatible: function() {
